@@ -33,6 +33,10 @@ defmodule NotetakerWeb.Router do
     match :*, "/*path", NotesController, :embed_react
   end
 
+  scope "/createNote", NotetakerWeb do
+    match :*, "/*path", NotesController, :embed_react
+  end
+
   # Other scopes may use custom stacks.
   # scope "/api", NotetakerWeb do
   #   pipe_through :api
