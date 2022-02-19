@@ -2,18 +2,50 @@ import React, { Fragment } from "react";
 import { gql, useMutation, useQuery } from '@apollo/client';
 import { Redirect } from "react-router-dom";
 
+// === Setup API calls ===
+// mutations
+// reference: https://www.apollographql.com/docs/react/data/mutations/
+const CREATE_NOTE = gql`
+mutation ($title: String!, $body: String!) {
+  createNote(title: $title, body: $body) {
+    id
+    title
+    body
+    insertedAt
+  }
+}
+`;
+
 /**
- * Frontend component 
+ * Frontend component
+ * Please note, in order to export one of the Form inputs to the createNote API call,
+ * the input should have a name of "newNote_[API-PROPERTY-NAME]" - the [API-PROPERTY-NAME]
+ * will be provided to the mutation call with the input value used as the value.  
  */
 
 const NewNote = () => {
+    // == Execute API calls ==
+    const [createNote, { loading, error, data }] = useMutation(CREATE_NOTE);
 
     // == HTML event hooks ==
     function handleSubmission(event) {
+        // prevent usual onSubmit functionality
         event.preventDefault();
-        console.log('New note submitted!');
+        // first we extract our note data dynamically from the form
+        const noteData = Object.values(event.target.children)
+            .filter(el => el.name.startsWith('newNote_'))
+            .map(el => ({ [el.name.replace('newNote_', '')]: el.value }))
+            .reduce((res, curr) => ({ ...res, ...curr }), {})
+        // then we package up all our extracted form data and ship it off to the Graphql API
+        createNote({ variables: noteData })
+        // finally returning the user to the main /notes page via the router once completed
+        window.open('/notes', '_self');
     }
     // == build main component HTML ==
+    // accomodating HTML where API query data is not yet available
+    if (loading) return <p>Submitting your note, please wait...</p>;
+    if (error) return <p>Error!</p>;
+    // build page based on API query data
     return (
         <Fragment>
             <header>
