@@ -12,7 +12,20 @@ import NewNote from "./components/newNote.jsx";
 
 const client = new ApolloClient({
   uri: '/graphql',
-  cache: new InMemoryCache()
+  cache: new InMemoryCache({
+    typePolicies: {
+      // [KS] defined custom merge function to prevent warnings in console when updating the cache
+      // Per the documentation here:
+      // https://www.apollographql.com/docs/react/caching/cache-field-behavior/#merging-non-normalized-objects
+      // ...The configuration below will enforce the default behaviour to prefer the incoming cache data, but silences the warning message. 
+      // This preferential behaviour for the incoming cache is our desired behaviour (for now), so we re-enforce it here.
+      Query: {
+        fields: {
+          notes: { merge: false }
+        }
+      }
+    }
+  })
 });
 
 const App = () => {

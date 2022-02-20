@@ -55,6 +55,24 @@ defmodule NotetakerWeb.Schema do
       end)
     end
 
+    @desc "Update an existing note in the system. Returns the updated note."
+    field :update_note, :note do
+      arg(:id, non_null(:string), description: "The ID of the note")
+      arg(:title, non_null(:string), description: "The title of the note")
+      arg(:body, non_null(:string), description: "The contents of the note")
+      # arg(:location, :string, description: "[Optional] The browser location at time of note creation")
+
+      resolve(fn args, _ ->
+        # reference: https://hexdocs.pm/ecto/Ecto.Repo.html#c:update/2
+        note = Repo.get(Note, args.id)
+        # location = args.location || note.location || nil
+        # reference: https://elixirschool.com/en/lessons/ecto/changesets
+        changeset = Ecto.Changeset.change(note, %{title: args.title, body: args.body})
+        Repo.update!(changeset)
+        {:ok, note}
+      end)
+    end
+
     @desc "For dev purposes - spawn a desired quantity of sample notes into the system. Returns the entire list of Notes in the system."
     field :spawn, list_of(:note) do
       arg(:quantity, non_null(:integer), description: "The quantity of sample notes to spawn")
@@ -79,5 +97,6 @@ defmodule NotetakerWeb.Schema do
     field :title, :string
     field :body, :string
     field :inserted_at, :naive_datetime
+    field :updated_at, :naive_datetime
   end
 end
