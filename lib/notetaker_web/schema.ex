@@ -6,10 +6,21 @@ defmodule NotetakerWeb.Schema do
   # Queries
 
   query do
+    @desc "Retrieve all notes in the system"
     field :notes, list_of(:note) do
       resolve(fn _, _ ->
         notes = Repo.all(Note)
         {:ok, notes}
+      end)
+    end
+
+    @desc "Retrieve a note by it's ID"
+    field :get_note, :note do
+      arg(:id, non_null(:string), description: "The ID of the note")
+
+      resolve(fn args, _ ->
+        note = Repo.get(Note, args.id)
+        {:ok, note}
       end)
     end
   end
@@ -26,6 +37,37 @@ defmodule NotetakerWeb.Schema do
         # auto-generates the "id" and "insertedAt" properties
         insertedNote = Repo.insert!(note)
         {:ok, insertedNote}
+      end)
+    end
+
+    @desc "Delete an existing note from the system. Returns the deleted note."
+    field :delete_note, :note do
+      arg(:id, non_null(:string), description: "The ID of the note")
+
+      resolve(fn args, _ ->
+        # if Repo.exists?(Note, args.id) do
+        noteForDeletion = Repo.get(Note, args.id)
+        Repo.delete!(noteForDeletion)
+        {:ok, noteForDeletion}
+        # else
+        #  {:error, "The Note ID #{args.id} is not registered in the system!"}
+        # end
+      end)
+    end
+
+    @desc "For dev purposes - spawn a desired quantity of sample notes into the system. Returns the entire list of Notes in the system."
+    field :spawn, list_of(:note) do
+      arg(:quantity, non_null(:integer), description: "The quantity of sample notes to spawn")
+
+      resolve(fn args, _ ->
+        quantity = args.quantity
+
+        Enum.each(0..quantity, fn num ->
+          Repo.insert!(%Note{title: "Spawned Note #{num}", body: "This is a note"})
+        end)
+
+        notes = Repo.all(Note)
+        {:ok, notes}
       end)
     end
   end
