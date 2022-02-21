@@ -5,6 +5,8 @@ defmodule Notetaker.Repo.Migrations.SetupNotes do
     create table("note") do
       add :title, :string
       add :body, :text
+      add :user, :string
+      add :location, :string
       timestamps()
     end
   end
